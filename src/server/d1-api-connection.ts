@@ -16,13 +16,17 @@ export async function createDbApiConnection(
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ sql, params, method }),
+      body: JSON.stringify({
+        sql,
+        params: params.length > 0 ? params : undefined,
+        method,
+      }),
     });
 
     const data: any = await res.json();
 
     if (res.status !== 200) {
-      console.log("failed to run query", sql);
+      console.log("failed to run query", sql, data);
 
       throw new Error(
         `Error from sqlite proxy server: ${res.status} ${res.statusText}\n${JSON.stringify(data)}`

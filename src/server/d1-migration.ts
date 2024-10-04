@@ -20,14 +20,20 @@ export const d1Migrate = async ({
   await migrate(
     db,
     async (migrationQueries) => {
-      for (const query of migrationQueries) {
-        // remove sql comments
-        const processedQuery = query.replace(/\/\*(\n|.)+\*\//gm, "").trim();
-        if (processedQuery.length === 0) {
-          continue;
-        }
-        await db.run(sql.raw(processedQuery));
+      const queries = migrationQueries
+        .map((query) => {
+          const processedQuery = query.replace(/\/\*(\n|.)+\*\//gm, "").trim();
+          if (processedQuery.length === 0) {
+            return null;
+          }
+          return processedQuery;
+        })
+        .filter((x) => x !== null);
+      if (queries.length === 0) {
+        return;
       }
+      const rawQuery = queries.join(";\n").replace(/;;/g, ";");
+      await db.run(sql.raw(rawQuery));
     },
     { migrationsFolder }
   );
